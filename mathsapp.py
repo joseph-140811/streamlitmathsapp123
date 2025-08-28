@@ -102,9 +102,9 @@ elif topic == "Trigonometry":
     if st.button("Solve Trigonometry"):
         try:
             if mode_angle == "Degrees":
-                expr_deg = expr.replace("sin(", "sp.sin(sp.rad(")
-                expr_deg = expr_deg.replace("cos(", "sp.cos(sp.rad(")
-                expr_deg = expr_deg.replace("tan(", "sp.tan(sp.rad(")
+                expr_deg = expr.replace("sin(", ")sp.sin(sp.rad(")
+                expr_deg = expr_deg.replace("cos(", ")sp.cos(sp.rad(")
+                expr_deg = expr_deg.replace("tan(", ")sp.tan(sp.rad(")
                 result = eval(expr_deg)
             else:  # Radians
                 result = sp.sympify(expr).evalf()
@@ -176,3 +176,4 @@ elif topic == "Calculator":
             st.success(f"Result: {result}")
         except Exception as e:
             st.error(f"Error: {e}")
+
