@@ -19,26 +19,14 @@ st.markdown(
             background-color: #0a1a2f;
             color: #f5f5f5;
         }
-        .stTextInput, .stTextArea, .stSelectbox, .stRadio {
-            background-color: #1c2d4a !important;
-            color: #f5f5f5 !important;
-            border-radius: 10px;
-        }
-        /* Sidebar styling - Mature Black with White Text */
+        /* Sidebar styling */
         section[data-testid="stSidebar"] {
-            background-color: #0a0a0a !important; /* Pure mature black */
-            color: #f5f5f5 !important; /* Mature white */
+            background-color: #0a0a0a !important;
+            color: #f5f5f5 !important;
         }
         section[data-testid="stSidebar"] * {
-            color: #f5f5f5 !important; /* Ensure all text stays white */
-        }
-        section[data-testid="stSidebar"] .stSelectbox,
-        section[data-testid="stSidebar"] .stRadio {
-            background-color: #1c1c1c !important; /* Dark gray input contrast */
             color: #f5f5f5 !important;
-            border-radius: 8px;
         }
-        /* Button styling */
         .stButton>button {
             background-color: #1c2d4a !important;
             color: #ffffff !important;
@@ -49,7 +37,6 @@ st.markdown(
         .stButton>button:hover {
             background-color: #3e5c96 !important;
             box-shadow: 0px 0px 12px #3e5c96;
-            color: #ffffff !important;
         }
     </style>
     """,
@@ -66,8 +53,15 @@ if level == "Junior Secondary":
 elif level == "Senior Secondary":
     topic = st.sidebar.radio("Choose a topic:", ["Algebra", "Calculus", "Matrices", "Trigonometry", "Statistics"])
 
-else:  # Calculator option
+else:
     topic = "Calculator"
+
+# Allowed functions for sympy
+allowed_funcs = {
+    "sin": sp.sin, "cos": sp.cos, "tan": sp.tan,
+    "sqrt": sp.sqrt, "log": sp.log, "exp": sp.exp,
+    "pi": sp.pi, "e": sp.E
+}
 
 # --------- TOPIC HANDLERS ---------
 if topic == "Arithmetic":
@@ -75,8 +69,20 @@ if topic == "Arithmetic":
     expr = st.text_input("Enter arithmetic expression (e.g. 5*(2+3)):")
     if st.button("Solve Arithmetic"):
         try:
-            result = sp.sympify(expr).evalf()
+            result = sp.sympify(expr, locals=allowed_funcs).evalf()
             st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Algebra":
+    st.subheader("Algebra Solver")
+    equation = st.text_input("Enter equation (e.g. x**2 - 4 = 0):")
+    variable = st.text_input("Variable to solve for:", "x")
+    if st.button("Solve Algebra"):
+        try:
+            var = sp.Symbol(variable)
+            sol = sp.solve(sp.sympify(equation, locals=allowed_funcs), var)
+            st.success(f"Solutions: {sol}")
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -102,20 +108,61 @@ elif topic == "Geometry":
 
 elif topic == "Trigonometry":
     st.subheader("Trigonometry Solver")
-    expr = st.text_input("Enter expression (e.g. sin(30), cos(pi/3), tan(45)):")
+    expr = st.text_input("Enter expression (e.g. sin(30), cos(pi/3)):")
     angle_mode = st.radio("Angle Mode", ["Degrees", "Radians"])
     if st.button("Solve Trigonometry"):
         try:
-            expr = expr.replace("sin", "sp.sin").replace("cos", "sp.cos").replace("tan", "sp.tan")
-            parsed = sp.sympify(expr)
-
+            parsed = sp.sympify(expr, locals=allowed_funcs)
             if angle_mode == "Degrees":
                 parsed = parsed.xreplace({
-                    arg: arg*sp.pi/180 for arg in parsed.atoms(sp.Number)
+                    arg: arg * sp.pi/180 for arg in parsed.atoms(sp.Number)
                 })
-
             result = parsed.evalf()
             st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Statistics":
+    st.subheader("Statistics Calculator")
+    data = st.text_input("Enter numbers separated by commas (e.g. 1,2,3,4,5):")
+    if st.button("Calculate Stats"):
+        try:
+            nums = [float(x) for x in data.split(",")]
+            st.write(f"Mean: {stats.mean(nums)}")
+            st.write(f"Median: {stats.median(nums)}")
+            st.write(f"Variance: {stats.pvariance(nums)}")
+            st.write(f"Standard Deviation: {stats.pstdev(nums)}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Calculus":
+    st.subheader("Calculus Solver")
+    expr = st.text_input("Enter expression (e.g. x**2 + 2*x + 1):")
+    variable = st.text_input("Variable:", "x")
+    action = st.radio("Choose:", ["Differentiate", "Integrate"])
+    if st.button("Solve Calculus"):
+        try:
+            var = sp.Symbol(variable)
+            parsed = sp.sympify(expr, locals=allowed_funcs)
+            if action == "Differentiate":
+                result = sp.diff(parsed, var)
+            else:
+                result = sp.integrate(parsed, var)
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Matrices":
+    st.subheader("Matrix Solver")
+    matrix_str = st.text_area("Enter matrix rows separated by ';' (e.g. 1 2; 3 4):")
+    if st.button("Solve Matrix"):
+        try:
+            rows = [[float(num) for num in row.split()] for row in matrix_str.split(";")]
+            M = sp.Matrix(rows)
+            st.write(f"Matrix: {M}")
+            st.write(f"Determinant: {M.det()}")
+            if M.det() != 0:
+                st.write(f"Inverse: {M.inv()}")
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -125,8 +172,7 @@ elif topic == "Calculator":
     angle_mode = st.radio("Angle Mode (for trig)", ["Degrees", "Radians"])
     if st.button("Calculate"):
         try:
-            expr = expr.replace("sin", "sp.sin").replace("cos", "sp.cos").replace("tan", "sp.tan")
-            parsed = sp.sympify(expr, evaluate=False)
+            parsed = sp.sympify(expr, locals=allowed_funcs)
             if angle_mode == "Degrees":
                 parsed = parsed.xreplace({
                     arg: arg * sp.pi/180 for arg in parsed.atoms(sp.Number)
