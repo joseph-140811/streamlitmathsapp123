@@ -7,7 +7,7 @@ import math
 # --------- PAGE CONFIG ---------
 st.set_page_config(page_title="All-in-One Maths App", layout="wide")
 
-# Apply mature dark blue theme styling
+# --------- THEME ---------
 st.markdown(
     """
     <style>
@@ -24,14 +24,17 @@ st.markdown(
             color: #f5f5f5 !important;
             border-radius: 10px;
         }
-        /* Sidebar styling */
+        /* Sidebar styling - Mature Black with White Text */
         section[data-testid="stSidebar"] {
-            background-color: #0a1a2f !important;
-            color: #f5f5f5 !important;
+            background-color: #0a0a0a !important; /* Pure mature black */
+            color: #f5f5f5 !important; /* Mature white */
+        }
+        section[data-testid="stSidebar"] * {
+            color: #f5f5f5 !important; /* Ensure all text stays white */
         }
         section[data-testid="stSidebar"] .stSelectbox,
         section[data-testid="stSidebar"] .stRadio {
-            background-color: #1c2d4a !important;
+            background-color: #1c1c1c !important; /* Dark gray input contrast */
             color: #f5f5f5 !important;
             border-radius: 8px;
         }
@@ -58,17 +61,15 @@ st.sidebar.title("📘 Maths App")
 level = st.sidebar.selectbox("Select Level", ["Junior Secondary", "Senior Secondary", "Calculator"])
 
 if level == "Junior Secondary":
-    topic = st.sidebar.radio("Choose a topic:", 
-        ["Arithmetic", "Algebra", "Geometry", "Statistics", "Trigonometry"])
+    topic = st.sidebar.radio("Choose a topic:", ["Arithmetic", "Algebra", "Geometry", "Statistics", "Trigonometry"])
 
 elif level == "Senior Secondary":
-    topic = st.sidebar.radio("Choose a topic:", 
-        ["Algebra", "Calculus", "Matrices", "Trigonometry", "Statistics"])
+    topic = st.sidebar.radio("Choose a topic:", ["Algebra", "Calculus", "Matrices", "Trigonometry", "Statistics"])
 
 else:  # Calculator option
     topic = "Calculator"
 
-# --------- TOPIC HANDLERS (your existing solvers go here) ---------
+# --------- TOPIC HANDLERS ---------
 if topic == "Arithmetic":
     st.subheader("Arithmetic Solver")
     expr = st.text_input("Enter arithmetic expression (e.g. 5*(2+3)):")
@@ -99,12 +100,32 @@ elif topic == "Geometry":
         if st.button("Solve Geometry"):
             st.write(f"Area = {0.5*b*h:.2f}")
 
+elif topic == "Trigonometry":
+    st.subheader("Trigonometry Solver")
+    expr = st.text_input("Enter expression (e.g. sin(30), cos(pi/3), tan(45)):")
+    angle_mode = st.radio("Angle Mode", ["Degrees", "Radians"])
+    if st.button("Solve Trigonometry"):
+        try:
+            expr = expr.replace("sin", "sp.sin").replace("cos", "sp.cos").replace("tan", "sp.tan")
+            parsed = sp.sympify(expr)
+
+            if angle_mode == "Degrees":
+                parsed = parsed.xreplace({
+                    arg: arg*sp.pi/180 for arg in parsed.atoms(sp.Number)
+                })
+
+            result = parsed.evalf()
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
 elif topic == "Calculator":
     st.subheader("🧮 General Calculator")
     expr = st.text_input("Enter any expression (e.g. 2+3*5, sin(pi/3), sqrt(25)):")
     angle_mode = st.radio("Angle Mode (for trig)", ["Degrees", "Radians"])
     if st.button("Calculate"):
         try:
+            expr = expr.replace("sin", "sp.sin").replace("cos", "sp.cos").replace("tan", "sp.tan")
             parsed = sp.sympify(expr, evaluate=False)
             if angle_mode == "Degrees":
                 parsed = parsed.xreplace({
