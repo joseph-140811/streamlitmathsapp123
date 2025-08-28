@@ -31,7 +31,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("📘 Maths Learning & Calculator App")
+st.title("📘 Maths Learning  App")
 
 # -------------------- MAIN SELECTION --------------------
 level = st.sidebar.selectbox("Choose Level", ["Junior Secondary", "Senior Secondary"])
@@ -274,3 +274,4 @@ if level == "Senior Secondary":
                 st.success(f"Result = {result}")
             except Exception as e:
                 st.error(f"Error: {e}")
+
