@@ -39,9 +39,9 @@ ALLOWED = {
 }
 
 # Regex helpers for implicit multiplication (5(2+3) -> 5*(2+3), 2x -> 2*x, )(2 -> )*2 )
-_num = re.compile(r"(\d)\s*(?=\(")")
-_alpha = re.compile(r"(\d)([a-zA-Z])")
-_paren_num = re.compile(r"\)\s*(\d)")
+_num = re.compile(r"(\d)\s*(?=\("))
+_alpha = re.compile(r"(\d)([a-zA-Z]))
+_paren_num = re.compile(r"\)\s*(\d))
 
 def implicit_mul(expr: str) -> str:
     if not expr:
@@ -430,3 +430,4 @@ elif topic == "Calculator":
             st.success(f"Result: {sp.N(parsed)}")
         except Exception as e:
             st.error(e)
+
