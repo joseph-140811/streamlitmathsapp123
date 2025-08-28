@@ -2,238 +2,193 @@ import streamlit as st
 import sympy as sp
 import numpy as np
 import statistics as stats
-import re
 
-# ---- CUSTOM CSS THEME ----
-st.markdown(
-    """
-    <style>
-    body {
-        background-color: #0F172A;
-        color: #E2E8F0;
-    }
-    .stApp {
-        background-color: #0F172A;
-        color: #E2E8F0;
-    }
-    .stSidebar {
-        background-color: #000000 !important;
-    }
-    .stMarkdown, .stTextInput, .stNumberInput, .stSelectbox, .stButton>button, textarea, input, .stTextArea textarea {
-        background-color: #1E3A8A !important;
-        color: #E2E8F0 !important;
-        border-radius: 10px;
-        padding: 5px;
-    }
-    .stButton>button {
-        background-color: #1E90FF !important;
-        color: white !important;
-        font-weight: bold;
-        border-radius: 8px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
+# ==========================
+# 🎨 Custom Page Config
+# ==========================
+st.set_page_config(
+    page_title="All-in-One Maths App",
+    page_icon="📘",
+    layout="wide"
 )
 
-# ---- APP TITLE ----
+# Apply custom CSS for mature UI
+st.markdown("""
+    <style>
+    /* Background */
+    .stApp {
+        background: linear-gradient(135deg, #001f3f, #003366);
+        color: white;
+    }
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: black;
+    }
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    /* Input boxes */
+    .stTextInput input {
+        background-color: #1e2b47;
+        color: white;
+        border-radius: 10px;
+        padding: 8px;
+    }
+    /* Result cards */
+    .stAlert {
+        background-color: #0d1b2a;
+        border-radius: 12px;
+        padding: 15px;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("📘 All-in-One Maths App")
-st.write("Solve Junior & Senior Secondary School Math Problems — with a clean, mature theme.")
 
-# Sidebar navigation
-level = st.sidebar.selectbox("Select Level", ["Junior Secondary", "Senior Secondary"])
+# ==========================
+# Sidebar for Topics
+# ==========================
+level = st.sidebar.radio("📚 Select Level:", ["Junior Secondary", "Senior Secondary"])
 
-# ------------------ JUNIOR SECONDARY ------------------
 if level == "Junior Secondary":
-    topic = st.sidebar.selectbox("Choose a Topic", [
-        "Arithmetic", "Algebra", "Geometry", "Statistics", 
-        "Fractions & Decimals", "Simple Interest & Percentage", "Ratio & Proportion"
+    topic = st.sidebar.selectbox("Choose a topic:", [
+        "Arithmetic", "Algebra", "Geometry", "Statistics", "Trigonometry"
+    ])
+else:
+    topic = st.sidebar.selectbox("Choose a topic:", [
+        "Quadratic Equations", "Calculus", "Matrices", "Probability", "Trigonometry"
     ])
 
-    if topic == "Arithmetic":
-        st.subheader("Arithmetic Solver")
-        expr = st.text_input("Enter an arithmetic expression (e.g., 12/4 + 3*2 or 5(2+3)):")
-        if st.button("Solve Arithmetic"):
-            try:
-                expr_fixed = re.sub(r'(\d)(\()', r'\1*\2', expr)
-                result = sp.sympify(expr_fixed)
-                st.success(f"Result = {result}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+# ==========================
+# Topic Functions
+# ==========================
 
-    elif topic == "Algebra":
-        st.subheader("Algebra Solver")
-        expr = st.text_input("Enter algebraic expression (e.g., x^2 + 3*x + 2):")
-        if st.button("Factorize"):
-            try:
-                x = sp.symbols('x')
-                factored = sp.factor(sp.sympify(expr))
-                st.success(f"Factorized: {factored}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+if topic == "Arithmetic":
+    st.subheader("Arithmetic Calculator")
+    expr = st.text_input("Enter an arithmetic expression (e.g. 5*(2+3)):")
+    if st.button("Solve Arithmetic"):
+        try:
+            result = sp.sympify(expr).evalf()
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    elif topic == "Geometry":
-        st.subheader("Geometry Calculator")
-        shape = st.selectbox("Choose a shape", ["Circle", "Rectangle", "Triangle"])
-        if shape == "Circle":
-            r = st.number_input("Radius", value=1.0)
-            if st.button("Calculate Circle"):
-                st.success(f"Area = {np.pi*r**2:.2f}, Perimeter = {2*np.pi*r:.2f}")
-        elif shape == "Rectangle":
-            l = st.number_input("Length", value=1.0)
-            w = st.number_input("Width", value=1.0)
-            if st.button("Calculate Rectangle"):
-                st.success(f"Area = {l*w}, Perimeter = {2*(l+w)}")
-        elif shape == "Triangle":
-            b = st.number_input("Base", value=1.0)
-            h = st.number_input("Height", value=1.0)
-            if st.button("Calculate Triangle"):
-                st.success(f"Area = {0.5*b*h}")
+elif topic == "Algebra":
+    st.subheader("Algebra Solver")
+    expr = st.text_input("Enter an algebraic expression (e.g. x^2 + 2*x + 1):")
+    var = st.text_input("Enter the variable (e.g. x):")
+    if st.button("Simplify Algebra"):
+        try:
+            x = sp.symbols(var)
+            result = sp.simplify(expr)
+            st.success(f"Simplified: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    elif topic == "Statistics":
-        st.subheader("Statistics Calculator")
-        numbers = st.text_area("Enter numbers separated by commas")
-        if st.button("Calculate Stats"):
-            try:
-                data = [float(x.strip()) for x in numbers.split(",") if x.strip()]
-                if not data:
-                    raise ValueError("No valid numbers entered")
-                mean_val = stats.mean(data)
-                median_val = stats.median(data)
-                try:
-                    mode_val = stats.mode(data)
-                except:
-                    mode_val = "No unique mode"
-                st.success(f"Mean = {mean_val}, Median = {median_val}, Mode = {mode_val}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+elif topic == "Geometry":
+    st.subheader("Geometry - Area & Perimeter")
+    shape = st.selectbox("Select a shape:", ["Circle", "Rectangle", "Triangle"])
+    if shape == "Circle":
+        r = st.number_input("Enter radius:")
+        if st.button("Calculate Circle"):
+            area = np.pi * r**2
+            perimeter = 2 * np.pi * r
+            st.success(f"Area: {area:.2f}, Perimeter: {perimeter:.2f}")
+    elif shape == "Rectangle":
+        l = st.number_input("Length:")
+        b = st.number_input("Breadth:")
+        if st.button("Calculate Rectangle"):
+            area = l * b
+            perimeter = 2 * (l + b)
+            st.success(f"Area: {area}, Perimeter: {perimeter}")
+    elif shape == "Triangle":
+        b = st.number_input("Base:")
+        h = st.number_input("Height:")
+        if st.button("Calculate Triangle"):
+            area = 0.5 * b * h
+            st.success(f"Area: {area}")
 
-    elif topic == "Fractions & Decimals":
-        st.subheader("Fractions & Decimals")
-        expr = st.text_input("Enter fraction/decimal (e.g., 3/4 or 0.75):")
-        if st.button("Convert"):
-            try:
-                frac = sp.Rational(expr)
-                st.success(f"Fraction: {frac}, Decimal: {float(frac)}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+elif topic == "Statistics":
+    st.subheader("Statistics Calculator")
+    nums = st.text_area("Enter numbers separated by commas:")
+    if st.button("Calculate Statistics"):
+        try:
+            numbers = [float(n) for n in nums.split(",")]
+            mean = stats.mean(numbers)
+            median = stats.median(numbers)
+            mode = stats.mode(numbers)
+            st.success(f"Mean: {mean}, Median: {median}, Mode: {mode}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    elif topic == "Simple Interest & Percentage":
-        st.subheader("Simple Interest & Percentage")
-        p = st.number_input("Principal", value=100.0)
-        r = st.number_input("Rate (%)", value=5.0)
-        t = st.number_input("Time (years)", value=1.0)
-        if st.button("Calculate SI"):
-            si = (p*r*t)/100
-            st.success(f"Simple Interest = {si}, Total Amount = {p+si}")
-        value = st.number_input("Enter Value", value=50.0)
-        percent = st.number_input("Percentage", value=10.0)
-        if st.button("Percentage of Value"):
-            st.success(f"{percent}% of {value} = {(percent/100)*value}")
+elif topic == "Trigonometry":
+    st.subheader("Trigonometry Solver")
+    expr = st.text_input("Enter trig expression (e.g. sin(30), cos(pi/4), tan(60)):")
+    if st.button("Solve Trigonometry"):
+        try:
+            # Auto-convert degrees to radians
+            expr = expr.replace("sin(", "sp.sin(sp.rad(")
+            expr = expr.replace("cos(", "sp.cos(sp.rad(")
+            expr = expr.replace("tan(", "sp.tan(sp.rad(")
+            result = sp.sympify(expr).evalf()
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    elif topic == "Ratio & Proportion":
-        st.subheader("Ratio & Proportion")
-        a = st.number_input("a", value=1.0)
-        b = st.number_input("b", value=2.0)
-        c = st.number_input("c", value=3.0)
-        if st.button("Find d in a:b = c:d"):
-            try:
-                d = (b*c)/a
-                st.success(f"d = {d}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+elif topic == "Quadratic Equations":
+    st.subheader("Quadratic Equation Solver (ax²+bx+c=0)")
+    a = st.number_input("Enter a:", value=1.0)
+    b = st.number_input("Enter b:", value=0.0)
+    c = st.number_input("Enter c:", value=0.0)
+    if st.button("Solve Quadratic"):
+        x = sp.symbols('x')
+        roots = sp.solve(a*x**2 + b*x + c, x)
+        st.success(f"Roots: {roots}")
 
-# ------------------ SENIOR SECONDARY ------------------
-if level == "Senior Secondary":
-    topic = st.sidebar.selectbox("Choose a Topic", [
-        "Quadratic Equations", "Trigonometry", "Calculus", 
-        "Logarithms & Indices", "Probability", "Matrices"
-    ])
+elif topic == "Calculus":
+    st.subheader("Calculus")
+    expr = st.text_input("Enter a function (e.g. x^2 + 3*x):")
+    var = st.text_input("Enter the variable (e.g. x):")
+    choice = st.radio("Choose:", ["Differentiate", "Integrate"])
+    if st.button("Solve Calculus"):
+        try:
+            x = sp.symbols(var)
+            if choice == "Differentiate":
+                result = sp.diff(expr, x)
+            else:
+                result = sp.integrate(expr, x)
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    if topic == "Quadratic Equations":
-        st.subheader("Quadratic Equation Solver")
-        a = st.number_input("Coefficient a", value=1)
-        b = st.number_input("Coefficient b", value=0)
-        c = st.number_input("Coefficient c", value=0)
-        if st.button("Solve Quadratic"):
-            x = sp.symbols('x')
-            eq = a*x**2 + b*x + c
-            solutions = sp.solve(eq, x)
-            st.success(f"Solutions: {solutions}")
+elif topic == "Matrices":
+    st.subheader("Matrix Operations")
+    st.write("Enter rows separated by semicolons. Example: `1 2; 3 4`")
+    mat1 = st.text_input("Matrix A:")
+    mat2 = st.text_input("Matrix B:")
+    if st.button("Add Matrices"):
+        try:
+            A = np.matrix(mat1)
+            B = np.matrix(mat2)
+            st.success(f"Result:\n{A+B}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+    if st.button("Multiply Matrices"):
+        try:
+            A = np.matrix(mat1)
+            B = np.matrix(mat2)
+            st.success(f"Result:\n{A*B}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-    elif topic == "Trigonometry":
-        st.subheader("Trigonometry Evaluator")
-        expr = st.text_input("Enter trig expression (e.g., sin(pi/6) + cos(pi/3)): ")
-        if st.button("Evaluate Trig"):
-            try:
-                result = sp.simplify(sp.sympify(expr))
-                st.success(f"Result: {result}")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    elif topic == "Calculus":
-        st.subheader("Calculus")
-        expr = st.text_input("Enter function in x (e.g., x**3 + 2*x):")
-        if st.button("Differentiate"):
-            try:
-                x = sp.symbols('x')
-                diff = sp.diff(sp.sympify(expr), x)
-                st.success(f"Derivative: {diff}")
-            except Exception as e:
-                st.error(f"Error: {e}")
-        if st.button("Integrate"):
-            try:
-                x = sp.symbols('x')
-                integ = sp.integrate(sp.sympify(expr), x)
-                st.success(f"Integral: {integ}")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    elif topic == "Logarithms & Indices":
-        st.subheader("Logarithms & Indices")
-        expr = st.text_input("Enter expression (e.g., log(100,10) or 2**5):")
-        if st.button("Evaluate Log/Index"):
-            try:
-                result = sp.simplify(sp.sympify(expr))
-                st.success(f"Result: {result}")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    elif topic == "Probability":
-        st.subheader("Probability Calculator")
-        favorable = st.number_input("Favorable Outcomes", value=1)
-        total = st.number_input("Total Outcomes", value=6)
-        if st.button("Calculate Probability"):
-            try:
-                if total <= 0:
-                    raise ValueError("Total outcomes must be greater than 0")
-                prob = favorable/total
-                st.success(f"Probability = {prob}")
-            except Exception as e:
-                st.error(f"Error: {e}")
-
-    elif topic == "Matrices":
-        st.subheader("Matrix Calculator")
-        matA = st.text_area("Enter Matrix A (rows separated by ;, elements by space) e.g. 1 2;3 4")
-        matB = st.text_area("Enter Matrix B (same format)")
-        operation = st.selectbox("Choose Operation", ["Add", "Subtract", "Multiply", "Determinant A", "Inverse A"])
-        if st.button("Calculate Matrix"):
-            try:
-                A = sp.Matrix([[float(num) for num in row.split()] for row in matA.split(";")])
-                if matB:
-                    B = sp.Matrix([[float(num) for num in row.split()] for row in matB.split(";")])
-                if operation == "Add":
-                    st.success(f"A + B = {A+B}")
-                elif operation == "Subtract":
-                    st.success(f"A - B = {A-B}")
-                elif operation == "Multiply":
-                    st.success(f"A * B = {A*B}")
-                elif operation == "Determinant A":
-                    st.success(f"det(A) = {A.det()}")
-                elif operation == "Inverse A":
-                    if A.det() == 0:
-                        st.error("Matrix A is singular and cannot be inverted")
-                    else:
-                        st.success(f"A^(-1) = {A.inv()}")
-            except Exception as e:
-                st.error(f"Error: {e}")
+elif topic == "Probability":
+    st.subheader("Probability Calculator")
+    fav = st.number_input("Favourable outcomes:")
+    total = st.number_input("Total outcomes:")
+    if st.button("Calculate Probability"):
+        try:
+            prob = fav / total
+            st.success(f"Probability: {prob:.2f}")
+        except Exception as e:
+            st.error(f"Error: {e}")
