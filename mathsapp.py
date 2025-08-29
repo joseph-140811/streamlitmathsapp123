@@ -3,6 +3,20 @@ import sympy as sp
 import math
 
 # ---------------------------
+# Helper function for algebra
+# ---------------------------
+def parse_equation(equation_str):
+    """
+    Converts a string like '2*x + 3 = 7' into a SymPy Eq object.
+    """
+    if "=" in equation_str:
+        left, right = equation_str.split("=")
+        return sp.Eq(sp.sympify(left.strip()), sp.sympify(right.strip()))
+    else:
+        # Treat as expression equal to 0
+        return sp.Eq(sp.sympify(equation_str.strip()), 0)
+
+# ---------------------------
 # Streamlit UI Setup
 # ---------------------------
 st.set_page_config(page_title="MathsApp", page_icon="📘", layout="wide")
@@ -59,15 +73,25 @@ if topic == "Arithmetic":
             st.error(f"Error: {e}")
 
 elif topic == "Algebra":
-    st.write("🔢 Algebra section coming soon!")
+    eq_str = st.text_input("Enter an algebraic equation (e.g., 2*x + 3 = 7):")
+    if st.button("Solve"):
+        try:
+            eq = parse_equation(eq_str)
+            x = sp.symbols('x')
+            sol = sp.solve(eq, x)
+            st.success(f"Solution: {sol}")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 elif topic == "Simultaneous Equations":
     eq1 = st.text_input("Enter first equation (e.g., 2*x + y = 7):")
     eq2 = st.text_input("Enter second equation (e.g., x - y = 1):")
     if st.button("Solve System"):
         try:
+            e1 = parse_equation(eq1)
+            e2 = parse_equation(eq2)
             x, y = sp.symbols('x y')
-            sol = sp.solve([eq1, eq2], (x, y))  # simplified approach
+            sol = sp.solve([e1, e2], (x, y))
             st.success(f"Solution: {sol}")
         except Exception as e:
             st.error(f"Error: {e}")
