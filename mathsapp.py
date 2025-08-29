@@ -2,229 +2,142 @@ import streamlit as st
 import sympy as sp
 import math
 
-# --- THEME SETUP ---
+# ---------------------------
+# Helper function for algebra
+# ---------------------------
+def parse_equation(equation_str):
+    """
+    Converts a string like '2*x + 3 = 7' into a SymPy Eq object.
+    """
+    if "=" in equation_str:
+        left, right = equation_str.split("=")
+        return sp.Eq(sp.sympify(left.strip()), sp.sympify(right.strip()))
+    else:
+        # Treat as expression equal to 0
+        return sp.Eq(sp.sympify(equation_str.strip()), 0)
+
+# ---------------------------
+# Streamlit UI Setup
+# ---------------------------
+st.set_page_config(page_title="MathsApp", page_icon="📘", layout="wide")
+
 st.markdown(
     """
     <style>
-    .main {
-        background-color: #0A1A2F; /* Mature dark blue background */
+    body {
+        background-color: #0A1128; /* Mature dark blue background */
+        color: white; /* White text */
+    }
+    .stTextInput>div>div>input {
+        background-color: black;
         color: white;
     }
-    .stTextInput textarea {
-        background-color: black !important;
-        color: white !important;
-    }
-    .stTextInput input {
-        background-color: black !important;
-        color: white !important;
-    }
-    .sidebar .sidebar-content {
-        background-color: #15294B !important; /* Different shade of mature blue */
-        color: white !important;
+    section[data-testid="stSidebar"] {
+        background-color: #001F54; /* Slightly different mature blue */
+        color: white;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# --- APP TITLE ---
-st.title("📘 SmartMaths - JSS & SSS Learning Hub")
+st.title("📘 Maths Learning Hub")
 
-# --- HELPER FUNCTIONS ---
-def solve_equation(equation_str):
-    """Solve a simple algebraic equation like 2*x + 3 = 7"""
-    x = sp.Symbol("x")
-    try:
-        left, right = equation_str.split("=")
-        eq = sp.Eq(sp.sympify(left), sp.sympify(right))
-        solution = sp.solve(eq, x)
-        return solution
-    except Exception as e:
-        return f"Error: {e}"
+# ---------------------------
+# Choose Level
+# ---------------------------
+level = st.sidebar.radio("Choose Level", ["Junior Secondary (JSS)", "Senior Secondary (SSS)"])
 
-def solve_simultaneous(eq1_str, eq2_str):
-    """Solve 2 simultaneous equations"""
-    x, y = sp.symbols("x y")
-    try:
-        left1, right1 = eq1_str.split("=")
-        left2, right2 = eq2_str.split("=")
-        eq1 = sp.Eq(sp.sympify(left1), sp.sympify(right1))
-        eq2 = sp.Eq(sp.sympify(left2), sp.sympify(right2))
-        solution = sp.solve((eq1, eq2), (x, y))
-        return solution
-    except Exception as e:
-        return f"Error: {e}"
-
-def evaluate_expression(expr_str):
-    """Evaluate math expression safely with degrees for trig"""
-    try:
-        expr_str = expr_str.replace("^", "**")  
-        expr_str = expr_str.replace("sin", "math.sin(math.radians")
-        expr_str = expr_str.replace("cos", "math.cos(math.radians")
-        expr_str = expr_str.replace("tan", "math.tan(math.radians")
-
-        # Close the parentheses automatically
-        expr_str = expr_str.replace(")", "))")
-
-        result = eval(expr_str, {"math": math, "sqrt": math.sqrt})
-        if isinstance(result, float) and result.is_integer():
-            return int(result)
-        return result
-    except Exception as e:
-        return f"Error: {e}"
-
-# --- SIDEBAR SELECTION ---
-level = st.sidebar.selectbox("Choose Level", ["Junior Secondary (JSS)", "Senior Secondary (SSS)", "Calculator"])
-
-# --- JSS TOPICS ---
 if level == "Junior Secondary (JSS)":
-    topic = st.selectbox("Choose a JSS Topic", [
-        "Fractions",
-        "Decimals",
-        "Percentages",
-        "Simple Equations",
-        "Simultaneous Equations",
-        "Geometry",
-        "Probability",
-        "Word Problems",
-        "Algebra",
-        "Trigonometry"
+    topic = st.sidebar.selectbox("Choose a Topic", [
+        "Arithmetic", "Algebra", "Geometry", "Trigonometry",
+        "Simultaneous Equations", "Calculator"
     ])
 
-    if topic == "Fractions":
-        expr = st.text_input("Enter fraction expression (e.g., 1/2 + 3/4):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Decimals":
-        expr = st.text_input("Enter decimal expression (e.g., 2.5 * 3.2):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Percentages":
-        expr = st.text_input("Enter percentage problem (e.g., 20% of 50):")
-        if st.button("Calculate"):
-            try:
-                if "%" in expr:
-                    num, of_val = expr.split(" of ")
-                    percent = float(num.replace("%", ""))
-                    result = (percent / 100) * float(of_val)
-                    st.write("Result:", int(result) if result.is_integer() else result)
-                else:
-                    st.write("Result:", evaluate_expression(expr))
-            except Exception as e:
-                st.write("Error:", e)
-
-    elif topic == "Simple Equations":
-        eq = st.text_input("Enter an equation (e.g., 2*x + 3 = 7):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_equation(eq))
-
-    elif topic == "Simultaneous Equations":
-        eq1 = st.text_input("Enter first equation (e.g., 2*x + y = 10):")
-        eq2 = st.text_input("Enter second equation (e.g., x - y = 2):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_simultaneous(eq1, eq2))
-
-    elif topic == "Geometry":
-        expr = st.text_input("Enter geometry formula (e.g., Area of circle: 3.14*5^2):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Probability":
-        expr = st.text_input("Enter probability expression (e.g., 1/6 + 1/6):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Word Problems":
-        st.info("Type word problems in math expressions format. Example: (2+3)*4")
-
-    elif topic == "Algebra":
-        eq = st.text_input("Enter algebra equation (e.g., 3*x + 2 = 11):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_equation(eq))
-
-    elif topic == "Trigonometry":
-        expr = st.text_input("Enter trig expression in degrees (e.g., sin(30) + cos(60)):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-# --- SSS TOPICS ---
 elif level == "Senior Secondary (SSS)":
-    topic = st.selectbox("Choose an SSS Topic", [
-        "Algebra",
-        "Calculus",
-        "Quadratic Equations",
-        "Simultaneous Equations",
-        "Trigonometry",
-        "Logarithms",
-        "Sequences & Series",
-        "Matrices",
-        "Vectors",
-        "Probability & Statistics"
+    topic = st.sidebar.selectbox("Choose a Topic", [
+        "Algebra", "Calculus", "Trigonometry", "Geometry",
+        "Simultaneous Equations", "Statistics", "Calculator"
     ])
 
-    if topic == "Algebra":
-        eq = st.text_input("Enter algebra equation (e.g., 5*x - 3 = 7):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_equation(eq))
-
-    elif topic == "Calculus":
-        expr = st.text_input("Enter expression to differentiate (e.g., x**2 + 3*x):")
-        x = sp.Symbol("x")
-        if st.button("Differentiate"):
-            try:
-                diff_expr = sp.diff(expr, x)
-                st.write("Result:", diff_expr)
-            except Exception as e:
-                st.write("Error:", e)
-
-    elif topic == "Quadratic Equations":
-        eq = st.text_input("Enter quadratic equation (e.g., x**2 - 5*x + 6 = 0):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_equation(eq))
-
-    elif topic == "Simultaneous Equations":
-        eq1 = st.text_input("Enter first equation (e.g., 2*x + y = 10):")
-        eq2 = st.text_input("Enter second equation (e.g., x - y = 4):")
-        if st.button("Solve"):
-            st.write("Solution:", solve_simultaneous(eq1, eq2))
-
-    elif topic == "Trigonometry":
-        expr = st.text_input("Enter trig expression in degrees (e.g., sin(45) + cos(30)):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Logarithms":
-        expr = st.text_input("Enter logarithm expression (e.g., log(100,10)):")
-        if st.button("Calculate"):
-            try:
-                if "log" in expr:
-                    base_expr = expr.replace("log", "math.log")
-                    st.write("Result:", eval(base_expr, {"math": math}))
-                else:
-                    st.write("Result:", evaluate_expression(expr))
-            except Exception as e:
-                st.write("Error:", e)
-
-    elif topic == "Sequences & Series":
-        expr = st.text_input("Enter sequence formula (e.g., sum of first 5 natural numbers: (5*6)/2):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-    elif topic == "Matrices":
-        st.info("Matrix operations coming soon!")
-
-    elif topic == "Vectors":
-        st.info("Vector operations coming soon!")
-
-    elif topic == "Probability & Statistics":
-        expr = st.text_input("Enter probability/statistics expression (e.g., (1/6) + (1/6)):")
-        if st.button("Calculate"):
-            st.write("Result:", evaluate_expression(expr))
-
-# --- GENERAL CALCULATOR ---
-elif level == "Calculator":
-    expr = st.text_input("Enter any math expression:")
+# ---------------------------
+# Topic Logic
+# ---------------------------
+if topic == "Arithmetic":
+    expr = st.text_input("Enter an arithmetic expression:")
     if st.button("Calculate"):
-        st.write("Result:", evaluate_expression(expr))
+        try:
+            result = eval(expr)
+            st.success(f"Result: {int(result)}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Algebra":
+    eq_str = st.text_input("Enter an algebraic equation (e.g., 2*x + 3 = 7):")
+    if st.button("Solve"):
+        try:
+            eq = parse_equation(eq_str)
+            x = sp.symbols('x')
+            sol = sp.solve(eq, x)
+            st.success(f"Solution: {sol}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Simultaneous Equations":
+    eq1 = st.text_input("Enter first equation (e.g., 2*x + y = 7):")
+    eq2 = st.text_input("Enter second equation (e.g., x - y = 1):")
+    if st.button("Solve System"):
+        try:
+            e1 = parse_equation(eq1)
+            e2 = parse_equation(eq2)
+            x, y = sp.symbols('x y')
+            sol = sp.solve([e1, e2], (x, y))
+            st.success(f"Solution: {sol}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Trigonometry":
+    angle = st.number_input("Enter angle in degrees:", step=1.0)
+    function = st.selectbox("Choose function", ["sin", "cos", "tan"])
+    if st.button("Calculate"):
+        try:
+            rad = math.radians(angle)
+            if function == "sin":
+                result = math.sin(rad)
+            elif function == "cos":
+                result = math.cos(rad)
+            elif function == "tan":
+                result = math.tan(rad)
+            st.success(f"{function}({int(angle)}) = {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Geometry":
+    st.write("📐 Geometry section coming soon!")
+
+elif topic == "Calculus":
+    expr = st.text_input("Enter a function of x (e.g., x**2 + 3*x):")
+    operation = st.selectbox("Choose operation", ["Differentiate", "Integrate"])
+    if st.button("Compute"):
+        try:
+            x = sp.symbols('x')
+            f = sp.sympify(expr)
+            if operation == "Differentiate":
+                result = sp.diff(f, x)
+            else:
+                result = sp.integrate(f, x)
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+elif topic == "Statistics":
+    st.write("📊 Statistics section coming soon!")
+
+elif topic == "Calculator":
+    expr = st.text_input("Enter expression:")
+    if st.button("Evaluate"):
+        try:
+            result = eval(expr)
+            st.success(f"Result: {int(result)}")
+        except Exception as e:
+            st.error(f"Error: {e}")
