@@ -3,7 +3,7 @@ import sympy as sp
 import math
 
 # Page config
-st.set_page_config(page_title="NaNa Maths App 📘", page_icon="📘", layout="wide")
+st.set_page_config(page_title=" Maths App 📘", page_icon="📘", layout="wide")
 
 # Theme styling
 st.markdown(
@@ -25,7 +25,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("📘 NaNa Maths App")
+st.title("📘  Maths App")
 st.sidebar.title("📘 Topics")
 
 # Helper: Algebra equation parser
@@ -133,3 +133,4 @@ elif topic == "Calculus":
             st.success(result)
         except:
             st.error("Invalid expression")
+
