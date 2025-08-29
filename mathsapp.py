@@ -130,6 +130,23 @@ def safe_eval(expr: str):
         except Exception as e:
             raise e
 
+def parse_equation(expr: str, allowed_locals: dict) -> sp.Expr:
+    """
+    Parse an equation string into a sympy expression or equation object.
+    Handles both expressions and equations with '=' sign.
+    """
+    expr = implicit_mul(expr)
+    
+    # Check if it's an equation (contains '=')
+    if '=' in expr:
+        parts = expr.split('=', 1)
+        left = sp.sympify(parts[0].strip(), locals=allowed_locals)
+        right = sp.sympify(parts[1].strip(), locals=allowed_locals)
+        return sp.Eq(left, right)
+    else:
+        # It's just an expression
+        return sp.sympify(expr, locals=allowed_locals)
+
 # ================== SIDEBAR ==================
 st.sidebar.title("📘 MathCore")
 level = st.sidebar.selectbox("Select Level", ["Junior Secondary (JSS)", "Senior Secondary (SSS)", "Calculator"], index=0)
@@ -356,6 +373,7 @@ if level.startswith("Junior"):
     # Trigonometry (degrees)
     elif topic == "Trigonometry":
         st.subheader("Trigonometry (degrees)")
+        st.info("All trigonometric functions use degrees")
         trig_expr = st.text_input("Enter trig expression (e.g., sin(30), cos(45) + tan(30))")
         if st.button("Evaluate"):
             try:
@@ -451,6 +469,7 @@ elif level.startswith("Senior"):
     # Trigonometry (degrees)
     elif topic == "Trigonometry":
         st.subheader("Trigonometry (degrees)")
+        st.info("All trigonometric functions use degrees")
         trig_expr = st.text_input("Enter trig expression (e.g. sin(30)+cos(60))")
         if st.button("Evaluate"):
             try:
@@ -578,7 +597,7 @@ elif level.startswith("Senior"):
 
     elif topic == "Determinants":
         st.subheader("Determinants")
-        mat = st.text_area("Enter matrix rows separated by ';' (e.g. '1 2;3 4')")
+        mat = st.text_area("Enter matrix rows separated by ';' (e.g. '1 2;3'4')")
         if st.button("Compute"):
             try:
                 M = sp.Matrix([[float(n) for n in row.split()] for row in mat.split(';')])
@@ -610,24 +629,10 @@ elif level.startswith("Senior"):
 elif topic == "Calculator":
     st.subheader("🧮 Calculator")
     expr = st.text_input("Enter any expression (e.g. 2+3*5, sin(30), sqrt(25), log(100,10))")
-    angle_mode = st.radio("Angle Mode (for trig) — degrees recommended", ["Degrees", "Radians"], horizontal=True)
+    st.info("Note: All trigonometric functions use degrees")
     if st.button("Calculate"):
         try:
-            # If user selected Radians, we will not auto-convert angles; otherwise sympy helper treats numeric trig args as degrees
-            if angle_mode == "Radians":
-                # Evaluate with sympy but don't run convert_trig_degrees:
-                parsed = sp.sympify(implicit_mul(expr), locals=ALLOWED)
-                val = sp.N(parsed)
-                try:
-                    f = float(val)
-                    if abs(f - round(f)) < 1e-12:
-                        st.success(int(round(f)))
-                    else:
-                        st.success(round(f, 10))
-                except Exception:
-                    st.success(val)
-            else:
-                val = safe_eval(expr)
-                st.success(f"Result: {val}")
+            val = safe_eval(expr)
+            st.success(f"Result: {val}")
         except Exception as e:
             st.error(e)
