@@ -3,7 +3,7 @@ import sympy as sp
 import math
 
 # Page config
-st.set_page_config(page_title=" Maths App 📘", page_icon="📘", layout="wide")
+st.set_page_config(page_title="Maths App 📘", page_icon="📘", layout="wide")
 
 # Theme styling
 st.markdown(
@@ -13,19 +13,23 @@ st.markdown(
             background-color: #0A1A44; /* Mature dark blue */
             color: white;
         }
-        .stTextInput>div>div>input {
+        .stTextInput>div>div>input, .stNumberInput>div>div>input {
             background-color: black;
             color: white;
         }
-        .sidebar .sidebar-content {
-            background-color: #123456; /* Sidebar different mature blue */
+        section[data-testid="stSidebar"] {
+            background-color: #123456; /* Sidebar another type of mature blue */
+        }
+        .stSelectbox>div>div>select {
+            background-color: black;
+            color: white;
         }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.title("📘  Maths App")
+st.title("📘 Maths App")
 st.sidebar.title("📘 Topics")
 
 # Helper: Algebra equation parser
@@ -72,8 +76,8 @@ else:
 
 # Main Logic
 if topic == "Arithmetic":
-    num1 = st.number_input("Enter first number:", step=1.0)
-    num2 = st.number_input("Enter second number:", step=1.0)
+    num1 = st.number_input("Enter first number:", step=1.0, format="%.f")
+    num2 = st.number_input("Enter second number:", step=1.0, format="%.f")
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
     if st.button("Calculate"):
         if operation == "Add":
@@ -116,7 +120,7 @@ elif topic == "Quadratic Equations":
 
 elif topic == "Logarithms":
     val = st.number_input("Enter value:")
-    base = st.number_input("Enter base (default 10):", value=10, step=1)
+    base = st.number_input("Enter base (default 10):", value=10, step=1, format="%.f")
     if st.button("Calculate Log"):
         try:
             result = math.log(val, base)
@@ -133,4 +137,3 @@ elif topic == "Calculus":
             st.success(result)
         except:
             st.error("Invalid expression")
-
