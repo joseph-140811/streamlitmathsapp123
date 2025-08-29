@@ -158,17 +158,20 @@ elif mode == "Calculator":
 # Custom CSS for theme
 st.markdown("""
     <style>
-    body {
-        background-color: #001f3f;
-        color: white !important;
+    /* Whole app background */
+    .stApp {
+        background-color: #001f3f !important;
     }
+    /* Sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #001f3f;
+        background-color: #001f3f !important;
         color: white !important;
     }
+    /* Text color */
     .stMarkdown, .stRadio, .stSelectbox, .stTextInput, .stNumberInput, .stTextArea, .stButton > button {
         color: white !important;
     }
+    /* Input fields */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stTextArea > div > textarea {
