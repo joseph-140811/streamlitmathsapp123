@@ -73,6 +73,23 @@ def implicit_mul(expr: str) -> str:
     expr = _paren_num.sub(r")*\1", expr)
     return expr
 
+def parse_equation(expr: str, allowed_locals: dict) -> sp.Expr:
+    """
+    Parse an equation string into a sympy expression or equation object.
+    Handles both expressions and equations with '=' sign.
+    """
+    expr = implicit_mul(expr)
+    
+    # Check if it's an equation (contains '=')
+    if '=' in expr:
+        parts = expr.split('=', 1)
+        left = sp.sympify(parts[0].strip(), locals=allowed_locals)
+        right = sp.sympify(parts[1].strip(), locals=allowed_locals)
+        return sp.Eq(left, right)
+    else:
+        # It's just an expression
+        return sp.sympify(expr, locals=allowed_locals)
+
 from sympy import Number, Integer, Rational, Float
 def convert_trig_degrees(sym_expr: sp.Expr) -> sp.Expr:
     """
@@ -129,23 +146,6 @@ def safe_eval(expr: str):
             return evaluate_numeric_fallback(expr)
         except Exception as e:
             raise e
-
-def parse_equation(expr: str, allowed_locals: dict) -> sp.Expr:
-    """
-    Parse an equation string into a sympy expression or equation object.
-    Handles both expressions and equations with '=' sign.
-    """
-    expr = implicit_mul(expr)
-    
-    # Check if it's an equation (contains '=')
-    if '=' in expr:
-        parts = expr.split('=', 1)
-        left = sp.sympify(parts[0].strip(), locals=allowed_locals)
-        right = sp.sympify(parts[1].strip(), locals=allowed_locals)
-        return sp.Eq(left, right)
-    else:
-        # It's just an expression
-        return sp.sympify(expr, locals=allowed_locals)
 
 # ================== SIDEBAR ==================
 st.sidebar.title("📘 MathCore")
@@ -236,7 +236,7 @@ if level.startswith("Junior"):
         base = st.number_input("Base value for percentage", value=200.0, key="base_pct")
         p = st.number_input("Percentage %", value=15.0, key="p_pct")
         if st.button("Compute %"):
-            st.success(f"{p}% of {base} = {(p/100)*base}")
+            st.success(f"{p% of {base} = {(p/100)*base}")
 
     # Ratio & Proportion
     elif topic == "Ratio & Proportion":
@@ -597,7 +597,7 @@ elif level.startswith("Senior"):
 
     elif topic == "Determinants":
         st.subheader("Determinants")
-        mat = st.text_area("Enter matrix rows separated by ';' (e.g. '1 2;3'4')")
+        mat = st.text_area("Enter matrix rows separated by ';' (e.g. '1 2;3 4')")
         if st.button("Compute"):
             try:
                 M = sp.Matrix([[float(n) for n in row.split()] for row in mat.split(';')])
