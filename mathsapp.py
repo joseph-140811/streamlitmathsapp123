@@ -3,7 +3,7 @@ import sympy as sp
 import math
 import fractions
 import numpy as np
-from scipy import stats
+import statistics
 
 # Page config
 st.set_page_config(page_title="Maths App 📘", page_icon="📘", layout="wide")
@@ -160,14 +160,15 @@ def statistics_operation(data, operation):
     try:
         arr = np.array(data)
         if operation == "Mean":
-            return np.mean(arr)
+            return round(np.mean(arr), 4)
         elif operation == "Median":
-            return np.median(arr)
+            return round(np.median(arr), 4)
         elif operation == "Mode":
-            mode = stats.mode(arr)
-            return mode.mode if mode.count > 1 else "No unique mode"
+            return round(statistics.mode(arr), 4)
         elif operation == "Standard Deviation":
-            return np.std(arr)
+            return round(np.std(arr), 4)
+    except statistics.StatisticsError:
+        return "No unique mode"
     except:
         return "Invalid data input"
 
@@ -175,11 +176,11 @@ def statistics_operation(data, operation):
 def series_operation(first_term, common_diff_ratio, n_terms, series_type):
     try:
         if series_type == "Arithmetic Sum":
-            return n_terms / 2 * (2 * first_term + (n_terms - 1) * common_diff_ratio)
+            return round(n_terms / 2 * (2 * first_term + (n_terms - 1) * common_diff_ratio), 4)
         elif series_type == "Geometric Sum":
             if common_diff_ratio == 1:
-                return first_term * n_terms
-            return first_term * (1 - common_diff_ratio ** n_terms) / (1 - common_diff_ratio)
+                return round(first_term * n_terms, 4)
+            return round(first_term * (1 - common_diff_ratio ** n_terms) / (1 - common_diff_ratio), 4)
     except:
         return "Invalid input"
 
