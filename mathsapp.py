@@ -4,6 +4,7 @@ import math
 import fractions
 import numpy as np
 import statistics
+import re
 
 # Page config
 st.set_page_config(page_title="Maths App 📘", page_icon="📘", layout="wide")
@@ -43,11 +44,19 @@ st.sidebar.title("📘 Topics")
 def parse_equation(eq):
     x = sp.symbols("x")
     try:
+        # Preprocess input: replace spaces around variables with *
+        eq = re.sub(r'(\d)\s*x', r'\1*x', eq.strip())  # e.g., '2 x' → '2*x'
+        eq = re.sub(r'x\s*(\+|-|\*|/|\^)', r'x\1', eq)  # Remove spaces after x
+        # Validate input: allow numbers, x, +, -, *, /, ^, (, )
+        if not re.match(r'^[0-9x\s\+\-\*/\^\(\)]+$', eq):
+            return "Invalid characters. Use numbers, x, +, -, *, /, ^, (, )."
         expr = sp.sympify(eq, evaluate=True)
         simplified = sp.simplify(expr)
         return sp.pretty(simplified, use_unicode=False)  # Clean output like 4x
-    except:
+    except sp.SympifyError:
         return "Invalid equation. Use format like 2x + 2x or x^2 - 4."
+    except:
+        return "Error processing equation. Ensure correct syntax."
 
 # Helper: Solve simultaneous equations
 def solve_simultaneous(eq1, eq2):
@@ -61,12 +70,20 @@ def solve_simultaneous(eq1, eq2):
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
-        deg = sp.deg
-        expr = expr.replace("sin", "sp.sin(sp.deg") \
-                   .replace("cos", "sp.cos(sp.deg") \
-                   .replace("tan", "sp.tan(sp.deg")
-        expr = expr.replace(")", "))")
-        result = eval(expr, {"sp": sp, "deg": deg})
+        # Validate input format: sin(number), cos(number), or tan(number)
+        expr = expr.strip().lower()
+        match = re.match(r"^(sin|cos|tan)\((-?\d+\.?\d*)\)$", expr)
+        if not match:
+            return "Invalid format. Use sin(30), cos(45), or tan(60)."
+        func, angle = match.groups()
+        angle = float(angle)
+        # Define trig functions in degrees
+        trig_funcs = {
+            "sin": lambda x: sp.sin(sp.deg(x)),
+            "cos": lambda x: sp.cos(sp.deg(x)),
+            "tan": lambda x: sp.tan(sp.deg(x))
+        }
+        result = trig_funcs[func](angle)
         return round(float(result), 4)
     except Exception as e:
         return f"Error: Invalid trig expression. Use format like sin(30) or cos(45). ({str(e)})"
@@ -255,7 +272,7 @@ elif topic == "Percentages":
         st.success(result)
 
 elif topic == "Algebra":
-    st.write("Enter an algebraic expression to simplify (e.g., 2x + 2x).")
+    st.write("Enter an algebraic expression to simplify (e.g., 2x + 2x, x^2 - 4).")
     eq = st.text_input("Enter algebraic expression:")
     if st.button("Simplify"):
         result = parse_equation(eq)
