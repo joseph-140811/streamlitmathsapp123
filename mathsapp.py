@@ -333,9 +333,11 @@ elif topic == "Quadratic Equations":
             # Preprocess input: handle spaces and implicit multiplication
             eq = eq.strip()
             if not re.match(r'^[\s0-9x\+\-\*/\^\(\)=]+$', eq):
-                return st.error("Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), =, and spaces.")
+                st.error("Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), =, and spaces.")
+                return  # Stop execution after displaying error
             if '=' not in eq:
-                return st.error("Equation must contain an '=' sign.")
+                st.error("Equation must contain an '=' sign.")
+                return  # Stop execution after displaying error
             # Split at = and process left-hand side
             left, right = [s.strip() for s in eq.split('=')]
             # Insert * for implicit multiplication (e.g., 5x → 5*x)
@@ -347,7 +349,8 @@ elif topic == "Quadratic Equations":
             # Verify quadratic by checking degree
             degree = sp.degree(expr, x)
             if degree != 2:
-                return st.error("Equation must be quadratic (contain x^2).")
+                st.error("Equation must be quadratic (contain x^2).")
+                return  # Stop execution after displaying error
             result = sp.solve(expr, x)
             cleaned_results = [clean_output(str(r)) for r in result]
             st.success(cleaned_results)
