@@ -27,6 +27,10 @@ st.markdown(
             background-color: black;
             color: white;
         }
+        .stButton>button {
+            background-color: #4B5EAA; /* Lighter blue for buttons */
+            color: white;
+        }
     </style>
     """,
     unsafe_allow_html=True
@@ -39,34 +43,33 @@ st.sidebar.title("📘 Topics")
 def parse_equation(eq):
     x = sp.symbols("x")
     try:
-        expr = sp.sympify(eq)
-        return sp.simplify(expr)
+        expr = sp.sympify(eq, evaluate=True)
+        simplified = sp.simplify(expr)
+        return sp.pretty(simplified, use_unicode=False)  # Clean output like 4x, not 4*x
     except:
-        return "Invalid equation"
+        return "Invalid equation. Use format like 2x + 2x or x**2 - 4."
 
 # Helper: Solve simultaneous equations
 def solve_simultaneous(eq1, eq2):
     x, y = sp.symbols("x y")
     try:
         sol = sp.solve([sp.sympify(eq1), sp.sympify(eq2)], (x, y))
-        return sol
+        return {str(k): str(v) for k, v in sol.items()}  # Clean string output
     except:
-        return "Invalid equations"
+        return "Invalid equations. Use format like 2x + y = 5."
 
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
-        # Define degree symbol
         deg = sp.deg
-        # Replace trig functions with SymPy versions that handle degrees
         expr = expr.replace("sin", "sp.sin(sp.deg") \
                    .replace("cos", "sp.cos(sp.deg") \
                    .replace("tan", "sp.tan(sp.deg")
         expr = expr.replace(")", "))")
         result = eval(expr, {"sp": sp, "deg": deg})
-        return round(float(result), 4)  # Convert to float and round to 4 decimal places
+        return round(float(result), 4)
     except Exception as e:
-        return f"Error: Invalid trig expression ({str(e)})"
+        return f"Error: Invalid trig expression. Use format like sin(30) or cos(45). ({str(e)})"
 
 # Helper: Fraction operations
 def fraction_operation(num1, den1, num2, den2, operation):
@@ -85,7 +88,7 @@ def fraction_operation(num1, den1, num2, den2, operation):
             result = f1 / f2
         return f"{result.numerator}/{result.denominator}"
     except:
-        return "Invalid fraction input"
+        return "Invalid fraction input. Ensure non-zero denominators."
 
 # Helper: Decimal operations
 def decimal_operation(num1, num2, operation):
@@ -101,7 +104,7 @@ def decimal_operation(num1, num2, operation):
                 return "Error: Division by zero"
             return round(num1 / num2, 4)
     except:
-        return "Invalid decimal input"
+        return "Invalid decimal input."
 
 # Helper: Percentage calculations
 def percentage_operation(value, percentage, operation):
@@ -113,13 +116,15 @@ def percentage_operation(value, percentage, operation):
         elif operation == "Decrease by":
             return round(value - (value * percentage) / 100, 4)
     except:
-        return "Invalid percentage input"
+        return "Invalid percentage input. Use non-negative numbers."
 
 # Helper: Matrix operations (for 2x2 matrices)
 def matrix_operation(mat1, mat2, operation):
     try:
         m1 = np.array(mat1)
         m2 = np.array(mat2)
+        if m1.shape != (2, 2) or m2.shape != (2, 2):
+            return "Matrices must be 2x2."
         if operation == "Add":
             return m1 + m2
         elif operation == "Subtract":
@@ -127,7 +132,7 @@ def matrix_operation(mat1, mat2, operation):
         elif operation == "Multiply":
             return np.dot(m1, m2)
     except:
-        return "Invalid matrix input"
+        return "Invalid matrix input. Use 4 comma-separated numbers per matrix."
 
 # Helper: Vector operations
 def vector_operation(vec1, vec2, operation):
@@ -135,30 +140,34 @@ def vector_operation(vec1, vec2, operation):
         v1 = np.array(vec1)
         v2 = np.array(vec2)
         if len(v1) != len(v2):
-            return "Vectors must be of same dimension"
+            return "Vectors must be of same dimension."
         if operation == "Dot Product":
-            return np.dot(v1, v2)
+            return round(np.dot(v1, v2), 4)
         elif operation == "Cross Product" and len(v1) == 3:
-            return np.cross(v1, v2)
+            return np.round(np.cross(v1, v2), 4)
         else:
-            return "Cross product only for 3D vectors"
+            return "Cross product only for 3D vectors."
     except:
-        return "Invalid vector input"
+        return "Invalid vector input. Use comma-separated numbers."
 
 # Helper: Probability calculations
 def probability_operation(n, k, operation):
     try:
+        if n < k or n < 0 or k < 0:
+            return "Invalid input. Ensure n >= k >= 0."
         if operation == "Permutation":
             return math.perm(n, k)
         elif operation == "Combination":
             return math.comb(n, k)
     except:
-        return "Invalid input"
+        return "Invalid input. Use non-negative integers."
 
 # Helper: Statistics calculations
 def statistics_operation(data, operation):
     try:
         arr = np.array(data)
+        if len(arr) == 0:
+            return "Data cannot be empty."
         if operation == "Mean":
             return round(np.mean(arr), 4)
         elif operation == "Median":
@@ -168,13 +177,15 @@ def statistics_operation(data, operation):
         elif operation == "Standard Deviation":
             return round(np.std(arr), 4)
     except statistics.StatisticsError:
-        return "No unique mode"
+        return "No unique mode."
     except:
-        return "Invalid data input"
+        return "Invalid data input. Use comma-separated numbers."
 
 # Helper: Sequences and Series
 def series_operation(first_term, common_diff_ratio, n_terms, series_type):
     try:
+        if n_terms < 1:
+            return "Number of terms must be positive."
         if series_type == "Arithmetic Sum":
             return round(n_terms / 2 * (2 * first_term + (n_terms - 1) * common_diff_ratio), 4)
         elif series_type == "Geometric Sum":
@@ -182,7 +193,7 @@ def series_operation(first_term, common_diff_ratio, n_terms, series_type):
                 return round(first_term * n_terms, 4)
             return round(first_term * (1 - common_diff_ratio ** n_terms) / (1 - common_diff_ratio), 4)
     except:
-        return "Invalid input"
+        return "Invalid input. Use valid numbers."
 
 # Sidebar
 level = st.sidebar.radio("Select Level", ["JSS", "SSS"])
@@ -200,8 +211,9 @@ else:
 
 # Main Logic
 if topic == "Arithmetic":
-    num1 = st.number_input("Enter first number:", step=1.0, format="%.f")
-    num2 = st.number_input("Enter second number:", step=1.0, format="%.f")
+    st.write("Enter two integers for basic operations.")
+    num1 = st.number_input("Enter first number:", step=1, format="%.f")
+    num2 = st.number_input("Enter second number:", step=1, format="%.f")
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
     if st.button("Calculate"):
         if operation == "Add":
@@ -214,6 +226,7 @@ if topic == "Arithmetic":
             st.success(num1 / num2 if num2 != 0 else "Error: Division by zero")
 
 elif topic == "Fractions":
+    st.write("Enter numerators and denominators for fraction operations.")
     num1 = st.number_input("Enter first numerator:", step=1, format="%.f")
     den1 = st.number_input("Enter first denominator:", step=1, format="%.f", min_value=1)
     num2 = st.number_input("Enter second numerator:", step=1, format="%.f")
@@ -224,6 +237,7 @@ elif topic == "Fractions":
         st.success(result)
 
 elif topic == "Decimals":
+    st.write("Enter two decimal numbers for operations.")
     num1 = st.number_input("Enter first decimal number:", step=0.1)
     num2 = st.number_input("Enter second decimal number:", step=0.1)
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
@@ -232,6 +246,7 @@ elif topic == "Decimals":
         st.success(result)
 
 elif topic == "Percentages":
+    st.write("Enter a value and percentage for calculations.")
     value = st.number_input("Enter value:", step=1.0, min_value=0.0)
     percentage = st.number_input("Enter percentage:", step=1.0, min_value=0.0)
     operation = st.selectbox("Choose operation:", ["Percentage of", "Increase by", "Decrease by"])
@@ -240,35 +255,40 @@ elif topic == "Percentages":
         st.success(result)
 
 elif topic == "Algebra":
-    eq = st.text_input("Enter algebraic expression (e.g. 2*x + 2*x):")
+    st.write("Enter an algebraic expression to simplify (e.g., 2x + 2x).")
+    eq = st.text_input("Enter algebraic expression:")
     if st.button("Simplify"):
         result = parse_equation(eq)
         st.success(result)
 
 elif topic == "Simultaneous Equations":
-    eq1 = st.text_input("Enter first equation (e.g. 2*x + y - 5):")
-    eq2 = st.text_input("Enter second equation (e.g. x - y - 1):")
+    st.write("Enter two linear equations (e.g., 2x + y = 5, x - y = 1).")
+    eq1 = st.text_input("Enter first equation:")
+    eq2 = st.text_input("Enter second equation:")
     if st.button("Solve"):
         result = solve_simultaneous(eq1, eq2)
         st.success(result)
 
 elif topic == "Trigonometry":
-    expr = st.text_input("Enter trig expression in degrees (e.g. sin(30), cos(60), tan(45)):")
+    st.write("Enter a trigonometric expression in degrees (e.g., sin(30), cos(60), tan(45)).")
+    expr = st.text_input("Enter trig expression in degrees:")
     if st.button("Evaluate"):
         result = evaluate_trig(expr)
         st.success(result)
 
 elif topic == "Quadratic Equations":
-    eq = st.text_input("Enter quadratic equation (e.g. x**2 + 5*x + 6):")
+    st.write("Enter a quadratic equation (e.g., x^2 + 5x + 6 = 0).")
+    eq = st.text_input("Enter quadratic equation:")
     if st.button("Solve"):
         x = sp.symbols("x")
         try:
             result = sp.solve(sp.sympify(eq), x)
-            st.success(result)
+            st.success([str(sp.pretty(r, use_unicode=False)) for r in result])
         except:
-            st.error("Invalid quadratic equation")
+            st.error("Invalid quadratic equation. Use format like x^2 + 5x + 6 = 0.")
 
 elif topic == "Logarithms":
+    st.write("Enter a value and base for logarithm calculation.")
     val = st.number_input("Enter value:", min_value=0.0001, step=0.1)
     base = st.number_input("Enter base (default 10):", value=10, step=1, format="%.f", min_value=1)
     if st.button("Calculate Log"):
@@ -276,17 +296,18 @@ elif topic == "Logarithms":
             result = math.log(val, base)
             st.success(round(result, 4))
         except:
-            st.error("Invalid log input")
+            st.error("Invalid log input. Value must be positive, base > 1.")
 
 elif topic == "Calculus":
-    expr = st.text_input("Enter expression (e.g. x**2 + 3*x):")
+    st.write("Enter an expression to differentiate (e.g., x^2 + 3x).")
+    expr = st.text_input("Enter expression:")
     if st.button("Differentiate"):
         x = sp.symbols("x")
         try:
             result = sp.diff(sp.sympify(expr), x)
-            st.success(result)
+            st.success(sp.pretty(result, use_unicode=False))
         except:
-            st.error("Invalid expression")
+            st.error("Invalid expression. Use format like x^2 + 3x.")
 
 elif topic == "Matrices":
     st.write("Enter 2x2 matrices as comma-separated values (e.g., 1,2,3,4 for [[1,2],[3,4]])")
@@ -295,15 +316,15 @@ elif topic == "Matrices":
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply"])
     if st.button("Calculate"):
         try:
-            mat1 = [[float(x) for x in mat1_str.split(',')[:2]], [float(x) for x in mat1_str.split(',')[2:]]]
-            mat2 = [[float(x) for x in mat2_str.split(',')[:2]], [float(x) for x in mat2_str.split(',')[2:]]]
+            mat1 = [[float(x) for x in mat1_str.split(',')[:2]], [float(x) for x in mat1_str.split(',')[2:4]]]
+            mat2 = [[float(x) for x in mat2_str.split(',')[:2]], [float(x) for x in mat2_str.split(',')[2:4]]]
             result = matrix_operation(mat1, mat2, operation)
-            st.success(result)
+            st.success(result.tolist())
         except:
-            st.error("Invalid matrix input")
+            st.error("Invalid matrix input. Enter 4 numbers per matrix.")
 
 elif topic == "Vectors":
-    st.write("Enter vectors as comma-separated values (e.g., 1,2,3)")
+    st.write("Enter vectors as comma-separated values (e.g., 1,2,3 for a 3D vector).")
     vec1_str = st.text_input("Enter first vector:")
     vec2_str = st.text_input("Enter second vector:")
     operation = st.selectbox("Choose operation:", ["Dot Product", "Cross Product"])
@@ -312,11 +333,12 @@ elif topic == "Vectors":
             vec1 = [float(x) for x in vec1_str.split(',')]
             vec2 = [float(x) for x in vec2_str.split(',')]
             result = vector_operation(vec1, vec2, operation)
-            st.success(result)
+            st.success(str(result))
         except:
-            st.error("Invalid vector input")
+            st.error("Invalid vector input. Use comma-separated numbers.")
 
 elif topic == "Probability":
+    st.write("Enter n and k for permutation or combination calculations.")
     n = st.number_input("Enter n:", step=1, format="%.f", min_value=0)
     k = st.number_input("Enter k:", step=1, format="%.f", min_value=0)
     operation = st.selectbox("Choose operation:", ["Permutation", "Combination"])
@@ -325,7 +347,8 @@ elif topic == "Probability":
         st.success(result)
 
 elif topic == "Statistics":
-    data_str = st.text_input("Enter data as comma-separated values (e.g., 1,2,3,4):")
+    st.write("Enter data as comma-separated values (e.g., 1,2,3,4).")
+    data_str = st.text_input("Enter data:")
     operation = st.selectbox("Choose operation:", ["Mean", "Median", "Mode", "Standard Deviation"])
     if st.button("Calculate"):
         try:
@@ -333,11 +356,12 @@ elif topic == "Statistics":
             result = statistics_operation(data, operation)
             st.success(result)
         except:
-            st.error("Invalid data input")
+            st.error("Invalid data input. Use comma-separated numbers.")
 
 elif topic == "Sequences and Series":
+    st.write("Enter parameters for arithmetic or geometric series sum.")
     first_term = st.number_input("Enter first term:")
-    common = st.number_input("Enter common difference/ratio:")
+    common = st.number_input("Enter common difference (arithmetic) or ratio (geometric):")
     n_terms = st.number_input("Enter number of terms:", step=1, format="%.f", min_value=1)
     series_type = st.selectbox("Choose series type:", ["Arithmetic Sum", "Geometric Sum"])
     if st.button("Calculate"):
