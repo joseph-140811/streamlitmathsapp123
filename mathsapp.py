@@ -45,16 +45,16 @@ def parse_equation(eq):
     try:
         expr = sp.sympify(eq, evaluate=True)
         simplified = sp.simplify(expr)
-        return sp.pretty(simplified, use_unicode=False)  # Clean output like 4x, not 4*x
+        return sp.pretty(simplified, use_unicode=False)  # Clean output like 4x
     except:
-        return "Invalid equation. Use format like 2x + 2x or x**2 - 4."
+        return "Invalid equation. Use format like 2x + 2x or x^2 - 4."
 
 # Helper: Solve simultaneous equations
 def solve_simultaneous(eq1, eq2):
     x, y = sp.symbols("x y")
     try:
         sol = sp.solve([sp.sympify(eq1), sp.sympify(eq2)], (x, y))
-        return {str(k): str(v) for k, v in sol.items()}  # Clean string output
+        return {str(k): str(sp.pretty(v, use_unicode=False)) for k, v in sol.items()}
     except:
         return "Invalid equations. Use format like 2x + y = 5."
 
@@ -212,8 +212,8 @@ else:
 # Main Logic
 if topic == "Arithmetic":
     st.write("Enter two integers for basic operations.")
-    num1 = st.number_input("Enter first number:", step=1, format="%.f")
-    num2 = st.number_input("Enter second number:", step=1, format="%.f")
+    num1 = st.number_input("Enter first number:", step=1, format="%d")
+    num2 = st.number_input("Enter second number:", step=1, format="%d")
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
     if st.button("Calculate"):
         if operation == "Add":
@@ -227,10 +227,10 @@ if topic == "Arithmetic":
 
 elif topic == "Fractions":
     st.write("Enter numerators and denominators for fraction operations.")
-    num1 = st.number_input("Enter first numerator:", step=1, format="%.f")
-    den1 = st.number_input("Enter first denominator:", step=1, format="%.f", min_value=1)
-    num2 = st.number_input("Enter second numerator:", step=1, format="%.f")
-    den2 = st.number_input("Enter second denominator:", step=1, format="%.f", min_value=1)
+    num1 = st.number_input("Enter first numerator:", step=1, format="%d")
+    den1 = st.number_input("Enter first denominator:", step=1, format="%d", min_value=1)
+    num2 = st.number_input("Enter second numerator:", step=1, format="%d")
+    den2 = st.number_input("Enter second denominator:", step=1, format="%d", min_value=1)
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
     if st.button("Calculate"):
         result = fraction_operation(int(num1), int(den1), int(num2), int(den2), operation)
@@ -238,8 +238,8 @@ elif topic == "Fractions":
 
 elif topic == "Decimals":
     st.write("Enter two decimal numbers for operations.")
-    num1 = st.number_input("Enter first decimal number:", step=0.1)
-    num2 = st.number_input("Enter second decimal number:", step=0.1)
+    num1 = st.number_input("Enter first decimal number:", step=0.1, format="%.2f")
+    num2 = st.number_input("Enter second decimal number:", step=0.1, format="%.2f")
     operation = st.selectbox("Choose operation:", ["Add", "Subtract", "Multiply", "Divide"])
     if st.button("Calculate"):
         result = decimal_operation(num1, num2, operation)
@@ -247,8 +247,8 @@ elif topic == "Decimals":
 
 elif topic == "Percentages":
     st.write("Enter a value and percentage for calculations.")
-    value = st.number_input("Enter value:", step=1.0, min_value=0.0)
-    percentage = st.number_input("Enter percentage:", step=1.0, min_value=0.0)
+    value = st.number_input("Enter value:", step=0.1, min_value=0.0, format="%.2f")
+    percentage = st.number_input("Enter percentage:", step=0.1, min_value=0.0, format="%.2f")
     operation = st.selectbox("Choose operation:", ["Percentage of", "Increase by", "Decrease by"])
     if st.button("Calculate"):
         result = percentage_operation(value, percentage, operation)
@@ -289,8 +289,8 @@ elif topic == "Quadratic Equations":
 
 elif topic == "Logarithms":
     st.write("Enter a value and base for logarithm calculation.")
-    val = st.number_input("Enter value:", min_value=0.0001, step=0.1)
-    base = st.number_input("Enter base (default 10):", value=10, step=1, format="%.f", min_value=1)
+    val = st.number_input("Enter value:", min_value=0.0001, step=0.1, format="%.2f")
+    base = st.number_input("Enter base (default 10):", value=10, step=1, format="%d", min_value=1)
     if st.button("Calculate Log"):
         try:
             result = math.log(val, base)
@@ -339,8 +339,8 @@ elif topic == "Vectors":
 
 elif topic == "Probability":
     st.write("Enter n and k for permutation or combination calculations.")
-    n = st.number_input("Enter n:", step=1, format="%.f", min_value=0)
-    k = st.number_input("Enter k:", step=1, format="%.f", min_value=0)
+    n = st.number_input("Enter n:", step=1, format="%d", min_value=0)
+    k = st.number_input("Enter k:", step=1, format="%d", min_value=0)
     operation = st.selectbox("Choose operation:", ["Permutation", "Combination"])
     if st.button("Calculate"):
         result = probability_operation(int(n), int(k), operation)
@@ -360,9 +360,9 @@ elif topic == "Statistics":
 
 elif topic == "Sequences and Series":
     st.write("Enter parameters for arithmetic or geometric series sum.")
-    first_term = st.number_input("Enter first term:")
-    common = st.number_input("Enter common difference (arithmetic) or ratio (geometric):")
-    n_terms = st.number_input("Enter number of terms:", step=1, format="%.f", min_value=1)
+    first_term = st.number_input("Enter first term:", step=0.1, format="%.2f")
+    common = st.number_input("Enter common difference (arithmetic) or ratio (geometric):", step=0.1, format="%.2f")
+    n_terms = st.number_input("Enter number of terms:", step=1, format="%d", min_value=1)
     series_type = st.selectbox("Choose series type:", ["Arithmetic Sum", "Geometric Sum"])
     if st.button("Calculate"):
         result = series_operation(first_term, common, int(n_terms), series_type)
