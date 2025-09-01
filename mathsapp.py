@@ -67,28 +67,36 @@ def parse_equation(eq):
 def solve_simultaneous(eq1, eq2):
     x, y = sp.symbols("x y")
     try:
-        # Preprocess inputs: remove spaces and handle = sign
-        eq1 = eq1.strip().replace(' ', '')
-        eq2 = eq2.strip().replace(' ', '')
-        # Validate input format
-        if not re.match(r'^[0-9xy\+\-\*/\^\(\)=]+$', eq1) or not re.match(r'^[0-9xy\+\-\*/\^\(\)=]+$', eq2):
-            return "Invalid characters. Use numbers, x, y, +, -, *, /, ^, (, ), =."
+        # Preprocess inputs: handle spaces and implicit multiplication
+        eq1 = eq1.strip()
+        eq2 = eq2.strip()
+        # Validate input format, allowing spaces
+        if not re.match(r'^[\s0-9xy\+\-\*/\^\(\)=]+$', eq1) or not re.match(r'^[\s0-9xy\+\-\*/\^\(\)=]+$', eq2):
+            return "Invalid characters. Use numbers, x, y, +, -, *, /, ^, (, ), =, and spaces."
         if '=' not in eq1 or '=' not in eq2:
             return "Equations must contain an '=' sign."
-        # Split equations at = and move right-hand side to left
-        left1, right1 = eq1.split('=')
-        left2, right2 = eq2.split('=')
+        # Split equations at =, handling spaces
+        left1, right1 = [s.strip() for s in eq1.split('=')]
+        left2, right2 = [s.strip() for s in eq2.split('=')]
+        # Insert * for implicit multiplication (e.g., 2x → 2*x)
+        left1 = re.sub(r'(\d)([xy])', r'\1*\2', left1)
+        right1 = re.sub(r'(\d)([xy])', r'\1*\2', right1)
+        left2 = re.sub(r'(\d)([xy])', r'\1*\2', left2)
+        right2 = re.sub(r'(\d)([xy])', r'\1*\2', right2)
+        # Transform to expr = 0 form
         eq1_processed = f"{left1}-({right1})"
         eq2_processed = f"{left2}-({right2})"
         # Parse and solve
         expr1 = sp.sympify(eq1_processed, evaluate=True)
         expr2 = sp.sympify(eq2_processed, evaluate=True)
         sol = sp.solve([expr1, expr2], (x, y))
+        if not sol:
+            return "No solution or equations are not linear."
         return {str(k): clean_output(str(v)) for k, v in sol.items()}
     except sp.SympifyError:
-        return "Invalid equation syntax. Use format like 2x + y = 5."
+        return "Invalid equation syntax. Use format like 2x + y = 5 or 3x - 2y = 5."
     except:
-        return "Error solving equations. Ensure they are linear and solvable."
+        return "Error solving equations. Ensure they are linear and solvable (e.g., 2x + y = 5, x - y = 1)."
 
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
