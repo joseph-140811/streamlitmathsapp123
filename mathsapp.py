@@ -75,11 +75,11 @@ def solve_simultaneous(eq1, eq2):
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
-        # Define degree-based trig functions
+        # Define degree-based trig functions using math module
         deg_trig = {
-            'sin': lambda x: sp.sin(sp.deg(x)),
-            'cos': lambda x: sp.cos(sp.deg(x)),
-            'tan': lambda x: sp.tan(sp.deg(x))
+            'sin': lambda x: math.sin(math.radians(x)),
+            'cos': lambda x: math.cos(math.radians(x)),
+            'tan': lambda x: math.tan(math.radians(x))
         }
         # Validate input format: sin(number), cos(number), or tan(number)
         expr = expr.strip().lower()
@@ -87,10 +87,9 @@ def evaluate_trig(expr):
         if not match:
             return "Invalid format. Use sin(30), cos(45), or tan(60)."
         func, angle = match.groups()
-        # Parse and evaluate
         angle = float(angle)
         result = deg_trig[func](angle)
-        return round(float(result), 4)
+        return round(result, 4)
     except Exception as e:
         return f"Error: Invalid trig expression. Use format like sin(30) or cos(45). ({str(e)})"
 
