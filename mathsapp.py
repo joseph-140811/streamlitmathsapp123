@@ -67,10 +67,28 @@ def parse_equation(eq):
 def solve_simultaneous(eq1, eq2):
     x, y = sp.symbols("x y")
     try:
-        sol = sp.solve([sp.sympify(eq1), sp.sympify(eq2)], (x, y))
+        # Preprocess inputs: remove spaces and handle = sign
+        eq1 = eq1.strip().replace(' ', '')
+        eq2 = eq2.strip().replace(' ', '')
+        # Validate input format
+        if not re.match(r'^[0-9xy\+\-\*/\^\(\)=]+$', eq1) or not re.match(r'^[0-9xy\+\-\*/\^\(\)=]+$', eq2):
+            return "Invalid characters. Use numbers, x, y, +, -, *, /, ^, (, ), =."
+        if '=' not in eq1 or '=' not in eq2:
+            return "Equations must contain an '=' sign."
+        # Split equations at = and move right-hand side to left
+        left1, right1 = eq1.split('=')
+        left2, right2 = eq2.split('=')
+        eq1_processed = f"{left1}-({right1})"
+        eq2_processed = f"{left2}-({right2})"
+        # Parse and solve
+        expr1 = sp.sympify(eq1_processed, evaluate=True)
+        expr2 = sp.sympify(eq2_processed, evaluate=True)
+        sol = sp.solve([expr1, expr2], (x, y))
         return {str(k): clean_output(str(v)) for k, v in sol.items()}
+    except sp.SympifyError:
+        return "Invalid equation syntax. Use format like 2x + y = 5."
     except:
-        return "Invalid equations. Use format like 2x + y = 5."
+        return "Error solving equations. Ensure they are linear and solvable."
 
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
