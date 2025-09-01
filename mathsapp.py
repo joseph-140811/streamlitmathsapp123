@@ -330,11 +330,31 @@ elif topic == "Quadratic Equations":
     if st.button("Solve"):
         x = sp.symbols("x")
         try:
-            result = sp.solve(sp.sympify(eq), x)
+            # Preprocess input: handle spaces and implicit multiplication
+            eq = eq.strip()
+            if not re.match(r'^[\s0-9x\+\-\*/\^\(\)=]+$', eq):
+                return st.error("Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), =, and spaces.")
+            if '=' not in eq:
+                return st.error("Equation must contain an '=' sign.")
+            # Split at = and process left-hand side
+            left, right = [s.strip() for s in eq.split('=')]
+            # Insert * for implicit multiplication (e.g., 5x → 5*x)
+            left = re.sub(r'(\d)(x)', r'\1*\2', left)
+            right = re.sub(r'(\d)(x)', r'\1*\2', right)
+            # Transform to expr = 0 form
+            eq_processed = f"{left}-({right})"
+            expr = sp.sympify(eq_processed, evaluate=True)
+            # Verify quadratic by checking degree
+            degree = sp.degree(expr, x)
+            if degree != 2:
+                return st.error("Equation must be quadratic (contain x^2).")
+            result = sp.solve(expr, x)
             cleaned_results = [clean_output(str(r)) for r in result]
             st.success(cleaned_results)
+        except sp.SympifyError:
+            st.error("Invalid equation syntax. Use format like x^2 + 5x + 6 = 0.")
         except:
-            st.error("Invalid quadratic equation. Use format like x^2 + 5x + 6 = 0.")
+            st.error("Error solving equation. Ensure it is a valid quadratic equation (e.g., x^2 + 5x + 6 = 0).")
 
 elif topic == "Logarithms":
     st.write("Enter a value and base for logarithm calculation.")
