@@ -40,19 +40,23 @@ st.markdown(
 st.title("📘 Maths App")
 st.sidebar.title("📘 Topics")
 
+# Helper to clean output by removing * between digit and variable
+def clean_output(s):
+    return re.sub(r'(\d)\*(\w)', r'\1\2', s)
+
 # Helper: Algebra equation parser
 def parse_equation(eq):
     x = sp.symbols("x")
     try:
-        # Preprocess input: replace spaces around variables with *
-        eq = re.sub(r'(\d)\s*x', r'\1*x', eq.strip())  # e.g., '2 x' → '2*x'
-        eq = re.sub(r'x\s*(\+|-|\*|/|\^)', r'x\1', eq)  # Remove spaces after x
-        # Validate input: allow numbers, x, +, -, *, /, ^, (, )
-        if not re.match(r'^[0-9x\s\+\-\*/\^\(\)]+$', eq):
+        eq = eq.strip().replace(' ', '')  # Remove spaces
+        if not re.match(r'^[0-9x\+\-\*/\^\(\)]+$', eq):
             return "Invalid characters. Use numbers, x, +, -, *, /, ^, (, )."
+        eq = re.sub(r'(\d)(x)', r'\1*\2', eq)  # Insert * between digit and x
         expr = sp.sympify(eq, evaluate=True)
         simplified = sp.simplify(expr)
-        return sp.pretty(simplified, use_unicode=False)  # Clean output like 4x
+        output = str(simplified)
+        output = clean_output(output)  # Remove * between digit and variable
+        return output
     except sp.SympifyError:
         return "Invalid equation. Use format like 2x + 2x or x^2 - 4."
     except:
@@ -63,21 +67,19 @@ def solve_simultaneous(eq1, eq2):
     x, y = sp.symbols("x y")
     try:
         sol = sp.solve([sp.sympify(eq1), sp.sympify(eq2)], (x, y))
-        return {str(k): str(sp.pretty(v, use_unicode=False)) for k, v in sol.items()}
+        return {str(k): clean_output(str(v)) for k, v in sol.items()}
     except:
         return "Invalid equations. Use format like 2x + y = 5."
 
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
-        # Validate input format: sin(number), cos(number), or tan(number)
         expr = expr.strip().lower()
         match = re.match(r"^(sin|cos|tan)\((-?\d+\.?\d*)\)$", expr)
         if not match:
             return "Invalid format. Use sin(30), cos(45), or tan(60)."
         func, angle = match.groups()
         angle = float(angle)
-        # Define trig functions in degrees
         trig_funcs = {
             "sin": lambda x: sp.sin(sp.deg(x)),
             "cos": lambda x: sp.cos(sp.deg(x)),
@@ -115,7 +117,7 @@ def decimal_operation(num1, num2, operation):
         elif operation == "Subtract":
             return round(num1 - num2, 4)
         elif operation == "Multiply":
-            return round(num1 * num2, 4)
+            result = round(num1 * num2, 4)
         elif operation == "Divide":
             if num2 == 0:
                 return "Error: Division by zero"
@@ -300,7 +302,8 @@ elif topic == "Quadratic Equations":
         x = sp.symbols("x")
         try:
             result = sp.solve(sp.sympify(eq), x)
-            st.success([str(sp.pretty(r, use_unicode=False)) for r in result])
+            cleaned_results = [clean_output(str(r)) for r in result]
+            st.success(cleaned_results)
         except:
             st.error("Invalid quadratic equation. Use format like x^2 + 5x + 6 = 0.")
 
@@ -322,7 +325,8 @@ elif topic == "Calculus":
         x = sp.symbols("x")
         try:
             result = sp.diff(sp.sympify(expr), x)
-            st.success(sp.pretty(result, use_unicode=False))
+            output = clean_output(str(result))
+            st.success(output)
         except:
             st.error("Invalid expression. Use format like x^2 + 3x.")
 
