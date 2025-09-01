@@ -98,6 +98,35 @@ def solve_simultaneous(eq1, eq2):
     except:
         return "Error solving equations. Ensure they are linear and solvable (e.g., 2x + y = 5, x - y = 1)."
 
+# Helper: Solve quadratic equation
+def solve_quadratic(eq):
+    x = sp.symbols("x")
+    try:
+        # Preprocess input: handle spaces and implicit multiplication
+        eq = eq.strip()
+        if not re.match(r'^[\s0-9x\+\-\*/\^\(\)=]+$', eq):
+            return "Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), =, and spaces."
+        if '=' not in eq:
+            return "Equation must contain an '=' sign."
+        # Split at = and process left-hand side
+        left, right = [s.strip() for s in eq.split('=')]
+        # Insert * for implicit multiplication (e.g., 5x → 5*x)
+        left = re.sub(r'(\d)(x)', r'\1*\2', left)
+        right = re.sub(r'(\d)(x)', r'\1*\2', right)
+        # Transform to expr = 0 form
+        eq_processed = f"{left}-({right})"
+        expr = sp.sympify(eq_processed, evaluate=True)
+        # Verify quadratic by checking degree
+        degree = sp.degree(expr, x)
+        if degree != 2:
+            return "Equation must be quadratic (contain x^2)."
+        result = sp.solve(expr, x)
+        return [clean_output(str(r)) for r in result]
+    except sp.SympifyError:
+        return "Invalid equation syntax. Use format like x^2 + 5x + 6 = 0."
+    except:
+        return "Error solving equation. Ensure it is a valid quadratic equation (e.g., x^2 + 5x + 6 = 0)."
+
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
@@ -328,36 +357,11 @@ elif topic == "Quadratic Equations":
     st.write("Enter a quadratic equation (e.g., x^2 + 5x + 6 = 0).")
     eq = st.text_input("Enter quadratic equation:")
     if st.button("Solve"):
-        x = sp.symbols("x")
-        try:
-            # Preprocess input: handle spaces and implicit multiplication
-            eq = eq.strip()
-            if not re.match(r'^[\s0-9x\+\-\*/\^\(\)=]+$', eq):
-                st.error("Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), =, and spaces.")
-                return  # Stop execution after displaying error
-            if '=' not in eq:
-                st.error("Equation must contain an '=' sign.")
-                return  # Stop execution after displaying error
-            # Split at = and process left-hand side
-            left, right = [s.strip() for s in eq.split('=')]
-            # Insert * for implicit multiplication (e.g., 5x → 5*x)
-            left = re.sub(r'(\d)(x)', r'\1*\2', left)
-            right = re.sub(r'(\d)(x)', r'\1*\2', right)
-            # Transform to expr = 0 form
-            eq_processed = f"{left}-({right})"
-            expr = sp.sympify(eq_processed, evaluate=True)
-            # Verify quadratic by checking degree
-            degree = sp.degree(expr, x)
-            if degree != 2:
-                st.error("Equation must be quadratic (contain x^2).")
-                return  # Stop execution after displaying error
-            result = sp.solve(expr, x)
-            cleaned_results = [clean_output(str(r)) for r in result]
-            st.success(cleaned_results)
-        except sp.SympifyError:
-            st.error("Invalid equation syntax. Use format like x^2 + 5x + 6 = 0.")
-        except:
-            st.error("Error solving equation. Ensure it is a valid quadratic equation (e.g., x^2 + 5x + 6 = 0).")
+        result = solve_quadratic(eq)
+        if isinstance(result, list):
+            st.success(result)
+        else:
+            st.error(result)
 
 elif topic == "Logarithms":
     st.write("Enter a value and base for logarithm calculation.")
