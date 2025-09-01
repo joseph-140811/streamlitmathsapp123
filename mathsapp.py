@@ -42,21 +42,22 @@ st.sidebar.title("📘 Topics")
 
 # Helper to clean output by removing * between digit and variable
 def clean_output(s):
-    return re.sub(r'(\d)\*(\w)', r'\1\2', s)
+    # Remove * between digits and variable (e.g., 4*x → 4x)
+    return re.sub(r'(\d+)\*([a-zA-Z])', r'\1\2', s)
 
 # Helper: Algebra equation parser
 def parse_equation(eq):
     x = sp.symbols("x")
     try:
+        # Preprocess input: standardize spaces and variable notation
         eq = eq.strip().replace(' ', '')  # Remove spaces
         if not re.match(r'^[0-9x\+\-\*/\^\(\)]+$', eq):
             return "Invalid characters. Use numbers, x, +, -, *, /, ^, (, )."
-        eq = re.sub(r'(\d)(x)', r'\1*\2', eq)  # Insert * between digit and x
+        eq = re.sub(r'(\d)(x)', r'\1*\2', eq)  # Insert * between digit and x (e.g., 2x → 2*x)
         expr = sp.sympify(eq, evaluate=True)
         simplified = sp.simplify(expr)
         output = str(simplified)
-        output = clean_output(output)  # Remove * between digit and variable
-        return output
+        return clean_output(output)  # Ensure 4*x → 4x
     except sp.SympifyError:
         return "Invalid equation. Use format like 2x + 2x or x^2 - 4."
     except:
@@ -74,18 +75,21 @@ def solve_simultaneous(eq1, eq2):
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
+        # Define degree-based trig functions
+        deg_trig = {
+            'sin': lambda x: sp.sin(sp.deg(x)),
+            'cos': lambda x: sp.cos(sp.deg(x)),
+            'tan': lambda x: sp.tan(sp.deg(x))
+        }
+        # Validate input format: sin(number), cos(number), or tan(number)
         expr = expr.strip().lower()
         match = re.match(r"^(sin|cos|tan)\((-?\d+\.?\d*)\)$", expr)
         if not match:
             return "Invalid format. Use sin(30), cos(45), or tan(60)."
         func, angle = match.groups()
+        # Parse and evaluate
         angle = float(angle)
-        trig_funcs = {
-            "sin": lambda x: sp.sin(sp.deg(x)),
-            "cos": lambda x: sp.cos(sp.deg(x)),
-            "tan": lambda x: sp.tan(sp.deg(x))
-        }
-        result = trig_funcs[func](angle)
+        result = deg_trig[func](angle)
         return round(float(result), 4)
     except Exception as e:
         return f"Error: Invalid trig expression. Use format like sin(30) or cos(45). ({str(e)})"
@@ -117,7 +121,7 @@ def decimal_operation(num1, num2, operation):
         elif operation == "Subtract":
             return round(num1 - num2, 4)
         elif operation == "Multiply":
-            result = round(num1 * num2, 4)
+            return round(num1 * num2, 4)
         elif operation == "Divide":
             if num2 == 0:
                 return "Error: Division by zero"
