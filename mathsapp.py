@@ -127,6 +127,25 @@ def solve_quadratic(eq):
     except:
         return "Error solving equation. Ensure it is a valid quadratic equation (e.g., x^2 + 5x + 6 = 0)."
 
+# Helper: Differentiate expression
+def differentiate_expression(expr):
+    x = sp.symbols("x")
+    try:
+        # Preprocess input: handle spaces and implicit multiplication
+        expr = expr.strip()
+        if not re.match(r'^[\s0-9x\+\-\*/\^\(\)]+$', expr):
+            return "Invalid characters. Use numbers, x, +, -, *, /, ^, (, ), and spaces."
+        # Insert * for implicit multiplication (e.g., 3x → 3*x)
+        expr = re.sub(r'(\d)(x)', r'\1*\2', expr)
+        # Parse and differentiate
+        parsed_expr = sp.sympify(expr, evaluate=True)
+        result = sp.diff(parsed_expr, x)
+        return clean_output(str(result))
+    except sp.SympifyError:
+        return "Invalid expression syntax. Use format like x^2 + 3x or 2x^3 - 4x."
+    except:
+        return "Error differentiating expression. Ensure it is valid (e.g., x^2 + 3x)."
+
 # Helper: Trigonometry with degrees
 def evaluate_trig(expr):
     try:
@@ -378,13 +397,11 @@ elif topic == "Calculus":
     st.write("Enter an expression to differentiate (e.g., x^2 + 3x).")
     expr = st.text_input("Enter expression:")
     if st.button("Differentiate"):
-        x = sp.symbols("x")
-        try:
-            result = sp.diff(sp.sympify(expr), x)
-            output = clean_output(str(result))
-            st.success(output)
-        except:
-            st.error("Invalid expression. Use format like x^2 + 3x.")
+        result = differentiate_expression(expr)
+        if isinstance(result, str) and "Invalid" in result or "Error" in result:
+            st.error(result)
+        else:
+            st.success(result)
 
 elif topic == "Matrices":
     st.write("Enter 2x2 matrices as comma-separated values (e.g., 1,2,3,4 for [[1,2],[3,4]])")
