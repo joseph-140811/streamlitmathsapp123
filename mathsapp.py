@@ -14,7 +14,7 @@ st.markdown(
     """
     <style>
         .main {
-            background-color: #1E3A8A; /* Mature dark blue for main content */
+            background-color: #6B7280 !important; /* Mature light blue for main content */
             color: white;
         }
         .stTextInput>div>div>input, .stNumberInput>div>div>input {
