@@ -14,7 +14,7 @@ st.markdown(
     """
     <style>
         .main {
-            background-color: #2B4A9B; /* Distinct mature blue for main content */
+            background-color: #1E3A8A; /* Mature dark blue for main content */
             color: white;
         }
         .stTextInput>div>div>input, .stNumberInput>div>div>input {
@@ -22,7 +22,7 @@ st.markdown(
             color: white;
         }
         section[data-testid="stSidebar"] {
-            background-color: #123456; /* Keep sidebar blue as is */
+            background-color: #123456; /* Keep sidebar blue */
         }
         .stSelectbox>div>div>select {
             background-color: black;
@@ -398,7 +398,7 @@ elif topic == "Calculus":
     expr = st.text_input("Enter expression:")
     if st.button("Differentiate"):
         result = differentiate_expression(expr)
-        if isinstance(result, str) and "Invalid" in result or "Error" in result:
+        if isinstance(result, str) and ("Invalid" in result or "Error" in result):
             st.error(result)
         else:
             st.success(result)
